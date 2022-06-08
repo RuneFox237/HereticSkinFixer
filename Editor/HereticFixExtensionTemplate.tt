@@ -1,0 +1,70 @@
+﻿<#@ template language="C#" linePragmas="false" #>
+<#@ import namespace="UnityEngine" #>
+<#@ import namespace="RoRSkinBuilder" #>
+using UnityEngine;
+using System;
+using RoR2;
+using MonoMod.RuntimeDetour;
+using RuneFoxMods.HereticFixExtension;
+
+
+namespace <#= info.assetInfo.uccModName #>
+{
+  public partial class <#= info.assetInfo.uccModName #>Plugin 
+  { 
+    static HereticFixExtension _HereticFixExtension = new HereticFixExtension();
+    static HereticFixManager _HereticFixManager = new HereticFixManager();
+
+    public class HereticFixExtension
+    {
+      //////////////////////////////////////////////////////////////////////////////////////////
+      /// Extension functions
+      
+      internal void BeforeStart()
+      {
+        _HereticFixManager.InstanceLogger = Instance.Logger;
+        new Hook(typeof(SkinDef).GetMethod(nameof(SkinDef.Apply)), (Action<Action<SkinDef, GameObject>, SkinDef, GameObject>)SkinDefApply).Apply();
+      }
+
+      internal void AfterStart(){}
+
+      internal void BeforeBodyCatalogInit()
+      {
+<# foreach(var skin in info.HereticSkins){#>
+        <#= skin.bodyName + skin.name #>SkinAddedEvent += onSkinAdded;
+<#}#>
+        _HereticFixManager.TryAddSkinController();
+      }
+
+      internal void AfterBodyCatalogInit(){}
+
+      /// Extension functions
+      //////////////////////////////////////////////////////////////////////////////////////////
+
+      internal void SkinDefApply(Action<SkinDef, GameObject> orig, SkinDef self, GameObject modelObject)
+      {
+        orig(self, modelObject);
+
+        if (_HereticFixManager.GetHereticSkinDefs().Contains(self))
+        {
+          //get Master so EmoteAPI skeleton is excuded
+          var master = modelObject.transform.Find("Master").gameObject;
+          HereticFixManager.initBoneOrder(self, master);
+          var renderers = master.GetComponentsInChildren<Renderer>(true);
+          foreach (var rend in renderers)
+          {
+            if (rend.GetType() == typeof(SkinnedMeshRenderer))
+            {
+              (rend as SkinnedMeshRenderer).bones = _HereticFixManager.GetBoneOrder();
+            }
+          }
+        }
+      }
+
+      static void onSkinAdded(object sender, SkinAddedArgs e)
+      {
+        _HereticFixManager.AddSkinDef(e.skinDef);
+      }
+    }
+  }
+}

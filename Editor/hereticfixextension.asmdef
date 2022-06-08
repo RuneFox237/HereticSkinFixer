@@ -1,0 +1,19 @@
+{
+    "name": "hereticfixextension.asmdef",
+    "references": [
+        "GUID:420d696f3c2739f4697e78d61fd43b2e",
+        "GUID:b95240a7a70e9d443af96a4bc75dd4b0",
+        "GUID:26496d61bfb2b4e42811852236c3a0cd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
